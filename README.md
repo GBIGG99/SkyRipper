@@ -1,4 +1,3 @@
-# SkyRipper
 
 SkyRipper is a demonstration toolkit that showcases how radio-frequency telemetry, Wi-Fi device tracking, and a simple web dashboard can be combined to monitor drone activity. The project is intentionally designed for educational purposes and **does not transmit or jam any signals**. All SDR and classification components are simulated to make the codebase safe to run on commodity hardware without any external equipment.
 
