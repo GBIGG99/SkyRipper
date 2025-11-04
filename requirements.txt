@@ -1,0 +1,7 @@
+Flask>=3.0.0
+PyYAML>=6.0
+numpy>=1.26
+pandas>=2.1
+geopy>=2.4
+requests>=2.31
+

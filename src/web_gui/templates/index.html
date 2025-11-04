@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SkyRipper – Drone Slayer</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <style>
+        #map { height: 100vh; }
+        .drone { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const HOME_LAT = 37.7749;
+    const HOME_LON = -122.4194;
+
+    const map = L.map('map').setView([HOME_LAT, HOME_LON], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    const markers = new Map();
+
+    setInterval(() => {
+        fetch('/api/alert')
+            .then(r => r.json())
+            .then(alerts => {
+                alerts.forEach(a => {
+                    const key = `${a.time}`;
+                    if (markers.has(key)) {
+                        return;
+                    }
+                    const lat = HOME_LAT + Math.random() * 0.01;
+                    const lon = HOME_LON + Math.random() * 0.01;
+                    const marker = L.marker([lat, lon])
+                        .addTo(map)
+                        .bindPopup(`<b class="drone">DRONE @ ${a.freq} | ${a.power}</b>`);
+                    markers.set(key, marker);
+                });
+            })
+            .catch(() => {});
+    }, 2000);
+</script>
+</body>
+</html>
