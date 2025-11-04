@@ -1,0 +1,27 @@
+# Default configuration for the SkyRipper demonstration stack.
+# All values are illustrative and do not map to real RF emission limits.
+scanner:
+  center_frequency_mhz: 2442.0
+  sample_rate_hz: 2000000
+  fft_size: 1024
+  threshold_dbm: -45.0
+  smoothing_factor: 0.4
+  window_seconds: 2
+
+classifier:
+  model_path: models/drone_burst_cnn.pth
+  min_confidence: 0.55
+
+kismet:
+  data_path: data/kismet_devices.jsonl
+  stale_after_seconds: 300
+
+geo:
+  default_latitude: 37.7749
+  default_longitude: -122.4194
+  alert_radius_m: 500
+
+jammer:
+  hop_frequencies_mhz: [2420.0, 2440.0, 2460.0]
+  dwell_time_ms: 250
+  legal_notice: "Transmission is disabled in the demo environment."
