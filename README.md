@@ -1,3 +1,4 @@
+## SkyRipper
 SkyRipper is a **simulated** drone detection and situational awareness showcase for research and education. The project demonstrates how software-defined radio (SDR) tooling, classical signal processing, and lightweight web dashboards can be combined to explore hobbyist airspace monitoring scenarios inside an isolated lab environment.
 
 > ⚠️ **Safety first:** The repository ships with mock assets, replay data, and non-transmitting stubs only. Do **not** attempt to transmit, jam, or otherwise interfere with radio services. Always comply with your local laws and operate inside a shielded test bench.
