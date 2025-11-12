@@ -14,6 +14,12 @@ SkyRipper is a **simulated** drone detection and situational awareness showcase 
 
 ## Getting Started
 
+### Requirements
+
+- Python 3.9+ with `pip`
+- A POSIX-compatible shell (macOS, Linux, or WSL)
+- Optional: `virtualenv` for isolated experiments
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
