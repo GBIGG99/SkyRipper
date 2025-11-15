@@ -43,9 +43,7 @@ function renderDevices(devices) {
   deviceLayer.clearLayers();
   const lines = devices.map((device) => {
     if (device.lat && device.lon) {
-      const latOffset = (Math.random() - 0.5) * 0.005;
-    const lonOffset = (Math.random() - 0.5) * 0.005;
-    const marker = L.circleMarker([DEFAULT_GEO.lat + latOffset, DEFAULT_GEO.lon + lonOffset], {
+      const marker = L.marker([device.lat, device.lon]).bindTooltip(
         `${device.ssid || "Unknown"} (${device.mac})`
       );
       deviceLayer.addLayer(marker);
