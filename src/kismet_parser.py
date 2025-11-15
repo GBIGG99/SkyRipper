@@ -34,7 +34,7 @@ class KismetParser:
             try:
                 # The "Z" suffix means UTC, but strptime doesn't handle it.
                 ts_str = raw.split("+", 1)[0].rstrip("Z")
-                dt = datetime.datetime.strptime(ts_str, "%Y-%m-%dT%H:%M:%S")
+                return datetime.datetime.strptime(raw.split("+", 1)[0].rstrip("Z"), "%Y-%m-%dT%H:%M:%S").replace(tzinfo=datetime.timezone.utc).timestamp()
                 return dt.replace(tzinfo=datetime.timezone.utc).timestamp()
             except ValueError:
                 pass
