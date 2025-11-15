@@ -1,6 +1,7 @@
 """Utility helpers for working with Kismet JSON exports."""
 from __future__ import annotations
 
+import datetime
 import json
 import time
 from dataclasses import dataclass, asdict
@@ -31,7 +32,10 @@ class KismetParser:
             return float(raw)
         if isinstance(raw, str):
             try:
-                return time.mktime(time.strptime(raw.split("+", 1)[0], "%Y-%m-%dT%H:%M:%SZ"))
+                # The "Z" suffix means UTC, but strptime doesn't handle it.
+                ts_str = raw.split("+", 1)[0].rstrip("Z")
+                dt = datetime.datetime.strptime(ts_str, "%Y-%m-%dT%H:%M:%S")
+                return dt.replace(tzinfo=datetime.timezone.utc).timestamp()
             except ValueError:
                 pass
         return time.time()
