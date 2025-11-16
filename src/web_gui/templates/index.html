@@ -92,7 +92,8 @@
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-SmSRN8CHQ0Z8bU+E1ZfUENzd37yCw2jtnx9fFfLx0u8="
       crossorigin=""
+      defer
     ></script>
-     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+     <script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
   </body>
 </html>
