@@ -113,17 +113,14 @@ class DroneScanner:
             yield self.scan_once(batch_size=batch_size)
             time.sleep(interval_seconds)
 
-    def latest(self, limit: int = 10, max_retries: int = 10) -> List[Dict[str, float]]:
+    def latest(self, limit: int = 10) -> List[Dict[str, float]]:
         """Produce a JSON-serializable list of detection dictionaries."""
 
         results: List[Dict[str, float]] = []
-        for _ in range(max_retries):
+        for detection in self.scan_once(batch_size=limit * 2):
+            results.append(detection.as_dict())
             if len(results) >= limit:
                 break
-            for detection in self.scan_once(batch_size=limit * 2):
-                results.append(detection.as_dict())
-                if len(results) >= limit:
-                    break
         return results
 
 
