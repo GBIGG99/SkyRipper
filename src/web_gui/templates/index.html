@@ -3,97 +3,124 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SkyRipper Demo</title>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-sA+zWATbFveLLNtdGxgq4jG3P6tDrTCXFZ8A5H0GhXg="
-      crossorigin=""
-    />
+    <title>SkyRipper – Drone Telemetry Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-sA+zWATbFveLLNtdGxgq4jG3P6tDrTCXFZ8A5H0GhXg=" crossorigin="" />
     <style>
-      body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        margin: 0;
-        background: #0f172a;
-        color: #e2e8f0;
-      }
-      header {
-        padding: 1.5rem;
-        text-align: center;
-        background: #1e293b;
-        box-shadow: 0 2px 4px rgba(15, 23, 42, 0.4);
-      }
-      h1 {
-        margin: 0;
-        font-size: 1.75rem;
-      }
-      main {
-        padding: 1rem;
-      }
-      #map {
-        height: 480px;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.45);
-      }
-      .status-panel {
-        margin-top: 1rem;
-        padding: 1rem;
-        background: #1e293b;
-        border-radius: 12px;
-        display: flex;
-        justify-content: space-between;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
-      .status-card {
-        flex: 1 1 220px;
-        background: rgba(148, 163, 184, 0.05);
-        padding: 1rem;
-        border-radius: 10px;
-        border: 1px solid rgba(148, 163, 184, 0.15);
-      }
-      .status-card h2 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #38bdf8;
-      }
-      .status-card pre {
-        margin: 0;
-        font-size: 0.85rem;
-        line-height: 1.4;
-        color: #cbd5f5;
-      }
+      body { margin:0; padding:0; background:#0f172a; color:#e2e8f0; font-family:system-ui,-apple-system,sans-serif; }
+      header { padding:1.5rem; text-align:center; background:#1e293b; box-shadow:0 4px 10px rgba(0,0,0,0.3); }
+      h1 { margin:0; font-size:2rem; }
+      main { padding:1rem; }
+      #map { height:65vh; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.6); margin-bottom:1rem; }
+      .status-panel { display:flex; gap:1rem; flex-wrap:wrap; }
+      .status-card { flex:1 1 300px; background:#1e293b; padding:1rem; border-radius:12px; border:1px solid #334155; }
+      .status-card h2 { margin:0 0 .5rem; font-size:1rem; text-transform:uppercase; letter-spacing:.08em; color:#38bdf8; }
+      pre { margin:0; font-size:.85rem; max-height:300px; overflow-y:auto; background:#0f172a; padding:.5rem; border-radius:6px; }
     </style>
   </head>
   <body>
     <header>
       <h1>SkyRipper – Drone Telemetry Dashboard</h1>
-      <p>Simulated detections for research and training purposes.</p>
+      <p>100% simulated · zero hardware · pure chaos</p>
     </header>
     <main>
       <div id="map"></div>
       <section class="status-panel">
         <div class="status-card">
           <h2>Recent Detections</h2>
-          <pre id="detections-log">Loading…</pre>
+          <pre id="detections-log">Initializing…</pre>
         </div>
         <div class="status-card">
           <h2>Kismet Devices</h2>
-          <pre id="devices-log">Loading…</pre>
+          <pre id="devices-log">Initializing…</pre>
         </div>
       </section>
     </main>
+
+    <!-- Pass geo from Flask -->
     <script>
       window.SKYRIPPER_DEFAULT_GEO = {{ default_geo | tojson }};
     </script>
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-SmSRN8CHQ0Z8bU+E1ZfUENzd37yCw2jtnx9fFfLx0u8="
-      crossorigin=""
-      defer
-    ></script>
-     <script src="{{ url_for('static', filename='js/map.js') }}" defer></script>
+
+    <!-- Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-SmSRN8CHQ0Z8bU+E1ZfUENzd37yCw2jtnx9fFfLx0u8=" crossorigin=""></script>
+
+    <!-- Our live-updating brain -->
+    <script>
+      const DEFAULT_GEO = window.SKYRIPPER_DEFAULT_GEO || { lat: 40.7608, lon: -111.8910, zoom: 11 };
+      const map = L.map('map').setView([DEFAULT_GEO.lat, DEFAULT_GEO.lon], DEFAULT_GEO.zoom);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      let detectionMarkers = {};
+      let kismetMarkers = {};
+
+      function updateDetections() {
+        fetch('/api/detections')
+          .then(r => r.json())
+          .then(data => {
+            document.getElementById('detections-log').textContent = 
+              data.slice(-30).map(d => `${new Date(d.time*1000).toLocaleTimeString()} | ${d.frequency_mhz.toFixed(1)}MHz | ${d.power_dbm.toFixed(1)}dBm | conf:${(d.confidence*100).toFixed(1)}%`).join('\n');
+
+            data.forEach(det => {
+              if (!det.lat || !det.lon) return;
+              const key = det.id;
+              if (detectionMarkers[key]) {
+                detectionMarkers[key].setLatLng([det.lat, det.lon]);
+              } else {
+                const color = det.confidence > 0.75 ? '#ef4444' : det.confidence > 0.65 ? '#f97316' : '#eab308';
+                const marker = L.circleMarker([det.lat, det.lon], {
+                  radius: 6,
+                  color: '#000',
+                  weight: 1,
+                  fillColor: color,
+                  fillOpacity: 0.8
+                }).addTo(map);
+                marker.bindPopup(`<b>Drone Burst</b><br>Freq: ${det.frequency_mhz.toFixed(1)} MHz<br>Power: ${det.power_dbm.toFixed(1)} dBm<br>Confidence: ${(det.confidence*100).toFixed(1)}%`);
+                detectionMarkers[key] = marker;
+              }
+            });
+          })
+          .catch(() => {});
+      }
+
+      function updateKismet() {
+        fetch('/api/kismet_devices')
+          .then(r => r.json())
+          .then(devices => {
+            if (devices.length === 0) {
+              document.getElementById('devices-log').textContent = 'No Kismet data loaded\nDrop JSONL into data/kismet_devices.jsonl';
+              return;
+            }
+            document.getElementById('devices-log').textContent = 
+              devices.slice(-20).map(d => `${d.mac} | ${d.ssid||'(hidden)'} | ${d.type||'unknown'}`).join('\n');
+
+            devices.forEach(dev => {
+              if (!dev.lat || !dev.lon) return;
+              const key = dev.mac;
+              if (!kismetMarkers[key]) {
+                const icon = L.divIcon({
+                  className: 'kismet-marker',
+                  html: '<div style="background:#22c55e;color:#000;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:bold;">K</div>',
+                  iconSize: [20, 20]
+                });
+                const m = L.marker([dev.lat, dev.lon], { icon }).addTo(map);
+                m.bindPopup(`<b>Kismet Device</b><br>MAC: ${dev.mac}<br>SSID: ${dev.ssid||'(none)'}<br>Type: ${dev.type||'unknown'}`);
+                kismetMarkers[key] = m;
+              }
+            });
+          })
+          .catch(() => {});
+      }
+
+      // Live update every 800ms
+      setInterval(updateDetections, 800);
+      setInterval(updateKismet, 5000);
+      updateDetections();
+      updateKismet();
+    </script>
   </body>
 </html>
