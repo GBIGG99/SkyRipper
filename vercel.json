@@ -1,18 +1,37 @@
 {
   "builds": [
     {
+      "src": "api/*.py",
+      "use": "@vercel/python"
+    },
+    {
       "src": "src/web_gui/app.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "15mb",
-        "runtime": "python3.9"
-      }
+      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "src/web_gui/app.py"
     }
-  ]
+  ],
+  "env": {
+    "PYTHONPATH": "/var/task:/var/task/src"
+  },
+  "functions": {
+    "src/web_gui/app.py": {
+      "maxDuration": 60,
+      "memory": 3008,
+      "runtime": "python3.11"
+    }
+  },
+  "build": {
+    "env": {
+      "PYTHON_VERSION": "3.11"
+    }
+  }
 }
