@@ -25,9 +25,7 @@ function renderDetections(detections) {
   const lines = detections.map((det) => {
     const label = `${det.frequency_mhz.toFixed(2)} MHz`;
     const popup = `Frequency: ${det.frequency_mhz.toFixed(2)} MHz\nPower: ${det.power_dbm.toFixed(1)} dBm\nConfidence: ${(det.confidence * 100).toFixed(0)}%`;
-    const latOffset = (Math.random() - 0.5) * 0.005;
-    const lonOffset = (Math.random() - 0.5) * 0.005;
-    const marker = L.circleMarker([DEFAULT_GEO.lat + latOffset, DEFAULT_GEO.lon + lonOffset], {
+    const marker = L.circleMarker([DEFAULT_GEO.lat, DEFAULT_GEO.lon], {
       radius: 8,
       color: "#f97316",
       fillColor: "#fb923c",
